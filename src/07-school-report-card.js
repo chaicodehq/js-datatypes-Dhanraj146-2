@@ -41,5 +41,66 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
-  // Your code here
+  if (
+    Array.isArray(student) ||
+    typeof student !== "object" ||
+    student === null ||
+    typeof student.name !== "string" ||
+    student.name.trim().length === 0 ||
+    Array.isArray(student.marks) ||
+    typeof student.marks !== "object" ||
+    student.marks === null ||
+    Object.keys(student.marks).length === 0 ||
+    Object.values(student.marks).some(
+      (ele) => typeof ele !== "number" || ele < 0 || ele > 100,
+    )
+  )
+    return null;
+  const name = student.name;
+  const totalMarks = Object.values(student.marks).reduce(
+    (sum, mark) => sum + mark,
+    0,
+  );
+  const percentage = parseFloat(
+    (totalMarks / Object.keys(student.marks).length).toFixed(2),
+  );
+  let grade;
+  if (percentage >= 90) grade = "A+";
+  else if (percentage >= 80) grade = "A";
+  else if (percentage >= 70) grade = "B";
+  else if (percentage >= 60) grade = "C";
+  else if (percentage >= 40) grade = "D";
+  else grade = "F";
+  const highestSubject = Object.entries(student.marks).reduce(
+    (subject, [key, value]) => {
+      if (value > subject.score) return { sub: key, score: value };
+      else return subject;
+    },
+    { sub: "", score: -Infinity },
+  ).sub;
+  const lowestSubject = Object.entries(student.marks).reduce(
+    (subject, [key, value]) => {
+      if (value < subject.score) return { sub: key, score: value };
+      else return subject;
+    },
+    { sub: "", score: Infinity },
+  ).sub;
+  const passedSubjects = Object.entries(student.marks)
+    .filter(([key, value]) => value >= 40)
+    .map(([key, value]) => key);
+  const failedSubjects = Object.entries(student.marks)
+    .filter(([key, value]) => value < 40)
+    .map(([key, value]) => key);
+  const subjectCount = Object.keys(student.marks).length;
+  return {
+    name,
+    totalMarks,
+    percentage,
+    grade,
+    highestSubject,
+    lowestSubject,
+    passedSubjects,
+    failedSubjects,
+    subjectCount,
+  };
 }

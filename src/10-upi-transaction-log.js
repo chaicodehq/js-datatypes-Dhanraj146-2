@@ -47,5 +47,65 @@
  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
 export function analyzeUPITransactions(transactions) {
-  // Your code here
+  if (!Array.isArray(transactions) || transactions.length === 0) return null;
+  const valid = transactions.filter(
+    (trans) =>
+      typeof trans.amount === "number" &&
+      trans.amount > 0 &&
+      (trans.type.toLowerCase() === "credit" ||
+        trans.type.toLowerCase() === "debit"),
+  );
+  if (valid.length === 0) return null;
+  const totalCredit = valid
+    .filter((trans) => trans.type.toLowerCase() === "credit")
+    .reduce((sum, trans) => sum + trans.amount, 0);
+  const totalDebit = valid
+    .filter((trans) => trans.type.toLowerCase() === "debit")
+    .reduce((sum, trans) => sum + trans.amount, 0);
+  const netBalance = totalCredit - totalDebit;
+  const transactionCount = valid.length;
+  const avgTransaction = Math.round(
+    (totalCredit + totalDebit) / transactionCount,
+  );
+  const highestTransaction = valid.reduce((highest, trans) => {
+    if (trans.amount > highest.amount) return trans;
+    else return highest;
+  });
+  const categoryBreakdown = valid.reduce((cat, trans) => {
+    if (Object.hasOwn(cat, trans.category)) cat[trans.category] += trans.amount;
+    else cat[trans.category] = trans.amount;
+    return cat;
+  }, {});
+  const freqObj = valid.reduce((cat, trans) => {
+    if (Object.hasOwn(cat, trans.to)) cat[trans.to] += 1;
+    else cat[trans.to] = 1;
+    return cat;
+  }, {});
+  // const frequentContact = Object.entries(freqObj).reduce(
+  //   (maxm, [contact, freq]) => {
+  //     if (freq > maxm[1]) return [contact, freq];
+  //     else return maxm;
+  //   },
+  // )[0];
+  const frequentContact = Object.entries(freqObj).reduce(
+    (maxm, [contact, freq]) => {
+      if (freq > maxm[1]) return [contact, freq];
+      else return maxm;
+    },
+    ["", 0],
+  )[0];
+  const allAbove100 = valid.every((trans) => trans.amount > 100);
+  const hasLargeTransaction = valid.some((trans) => trans.amount >= 5000);
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction,
+  };
 }
